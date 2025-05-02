@@ -2,26 +2,22 @@ import allure
 from pages.projects_page import ProjectsPage
 from utils.logger import logger
 
-@allure.title("Проверка создания нового проекта")
-@allure.description("Проверяет создание нового проекта через форму в разделе MY PROJECTS.")
+@allure.title("Проверка создания проекта")
+@allure.description("Тестирует создание нового проекта через кнопку 'Создать проект' с заполнением формы.")
 def test_create_project(logged_in_page):
+    # Создаём объект ProjectsPage напрямую, используя Playwright Page из logged_in_page
     projects_page = ProjectsPage(logged_in_page.page)
+    # Переходим на страницу дашборда через метод navigate() в ProjectsPage
+    projects_page.navigate()
+    projects_page.open_sidebar()
     projects_page.open_create_project_form()
-    project_name = "Test Project"
     projects_page.fill_create_project_form(
-        name=project_name,
-        description="Description for Test Project",
-        start_date="01.04.2025",
-        end_date="30.04.2025",
-        status="Active"
+        name="Test Project",
+        description="Test description",
+        start_date="2025-05-01",  # Формат YYYY-MM-DD для input type="date"
+        end_date="2025-05-31",    # Формат YYYY-MM-DD для input type="date"
+        status="In Progress"
     )
     projects_page.submit_create_project_form()
-    assert not projects_page.project_name_input.is_visible(), "Форма создания проекта не закрылась после отправки"
-    try:
-        projects_page.page.wait_for_selector(f"text={project_name}", timeout=10000)
-        logger.info(f"Проект '{project_name}' отображается в списке")
-    except Exception as e:
-        logger.error(f"Проект '{project_name}' не найден в списке: {e}")
-        projects_page.take_screenshot("project_list_error.png")
-        allure.attach.file("project_list_error.png", name="Скриншот ошибки списка проектов", attachment_type=allure.attachment_type.PNG)
-        raise
+    assert projects_page.is_project_created(), "Проект не был создан"
+    logger.info("Проект успешно создан и проверен")
