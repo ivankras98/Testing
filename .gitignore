@@ -1,0 +1,17 @@
+Окружение
+.env
+.venv/
+
+Allure отчеты
+allure-results/
+allure-report/
+
+Скриншоты и изображения
+*.png
+*.jpg
+*.jpeg
+
+Python-кэш
+pycache/
+*.pyc
+.pytest_cache/

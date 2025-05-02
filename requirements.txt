@@ -1,0 +1,6 @@
+playwright
+pytest
+pytest-playwright
+python-dotenv
+allure-pytest
+flake8
