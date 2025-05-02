@@ -1,5 +1,6 @@
 import allure
 from pages.home_page import HomePage
+from playwright.sync_api import Page
 from utils.logger import logger
 
 @allure.title("Проверка загрузки главной страницы")

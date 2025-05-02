@@ -11,7 +11,6 @@ def browser(playwright: Playwright):
     yield browser
     browser.close()
 
-
 @pytest.fixture(scope="function")
 def page(browser):
     context = browser.new_context()
@@ -21,7 +20,6 @@ def page(browser):
     page.on("response", lambda res: logger.info(f"Ответ: {res.status} {res.url}"))
     yield page
     context.close()
-
 
 @pytest.fixture(scope="function")
 def logged_in_page(page: Page):

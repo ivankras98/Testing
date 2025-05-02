@@ -1,6 +1,7 @@
 import allure
 from pages.authentication_page import AuthenticationPage
 from pages.dashboard_page import DashboardPage
+from playwright.sync_api import Page
 from settings import EMAIL, PASSWORD
 from utils.logger import logger
 

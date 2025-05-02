@@ -1,5 +1,6 @@
 import allure
 from pages.authentication_page import AuthenticationPage
+from pages.dashboard_page import DashboardPage
 from utils.logger import logger
 
 @allure.title("Проверка выхода из системы")
