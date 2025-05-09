@@ -1,3 +1,6 @@
+import sys
+import os
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
 import pytest
 from playwright.sync_api import Playwright, Page
 from pages.authentication_page import AuthenticationPage
