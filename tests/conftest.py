@@ -1,22 +1,13 @@
-import sys
-import os
-sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
-# tests/conftest.py
 import pytest
-from playwright.sync_api import sync_playwright, Playwright, Page
+from playwright.sync_api import Playwright, Page
 from pages.authentication_page import AuthenticationPage
 from pages.dashboard_page import DashboardPage
 from settings import EMAIL, PASSWORD
 from utils.logger import logger
 
 @pytest.fixture(scope="session")
-def playwright():
-    with sync_playwright() as p:
-        yield p
-
-@pytest.fixture(scope="session")
 def browser(playwright: Playwright):
-    browser = playwright.chromium.launch(headless=True)
+    browser = playwright.chromium.launch(headless=False)
     yield browser
     browser.close()
 
@@ -24,14 +15,14 @@ def browser(playwright: Playwright):
 def page(browser):
     context = browser.new_context()
     page = context.new_page()
+    page.on("console", lambda msg: logger.info(f"Консоль: {msg.text}"))
+    page.on("request", lambda req: logger.info(f"Запрос: {req.method} {req.url}"))
+    page.on("response", lambda res: logger.info(f"Ответ: {res.status} {res.url}"))
     yield page
-    page.close()
-
-@pytest.fixture(scope="function")
-def auth_page(page: Page):
-    return AuthenticationPage(page).navigate()
+    context.close()
 
 @pytest.fixture(scope="function")
 def logged_in_page(page: Page):
     auth_page = AuthenticationPage(page).navigate()
-    return auth_page.enter_email(EMAIL).enter_password(PASSWORD).click_login()
+    dashboard_page = auth_page.login(EMAIL, PASSWORD)
+    return dashboard_page

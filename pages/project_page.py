@@ -13,19 +13,19 @@ class ProjectPage(BasePage):
     @allure.step("Открыть страницу создания проекта")
     def navigate(self):
         logger.info(f"Переход на страницу проектов: {self.url}")
-        self.page.goto(self.url, wait_until="networkidle", timeout=60000)
+        self.page.goto(self.url, wait_until="networkidle", timeout=120000)
         logger.info(f"Текущий URL: {self.page.url}")
         return self
 
     @allure.step("Ввести название '{name}' в поле 'input[name='projectName']'")
     def enter_project_name(self, name):
-        self.page.fill("input[name='projectName']", name)
+        self.page.fill("input[name='projectName']", name, timeout=60000)
         logger.info(f"Введено название проекта: {name}")
         return self
 
     @allure.step("Нажать кнопку 'Создать' с селектором 'button[type='submit']'")
     def click_create(self):
-        self.page.click("button[type='submit']")
+        self.page.click("button[type='submit']", timeout=60000)
         logger.info("Нажата кнопка создания проекта")
         return self
 

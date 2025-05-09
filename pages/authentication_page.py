@@ -14,7 +14,6 @@ class AuthenticationPage(BasePage):
         self.error_message = page.locator("text='Invalid credentials'")
 
 
-
     @allure.step("Переход на страницу авторизации")
     def navigate(self):
         logger.info(f"Переход на страницу авторизации: {self.url}")

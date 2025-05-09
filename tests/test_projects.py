@@ -1,8 +1,13 @@
-from playwright.sync_api import Page
+# tests/test_projects.py
+import pytest
 import allure
-from pages.projects_page import ProjectPage
+from pages.project_page import ProjectPage
+from playwright.sync_api import Page
 
+@pytest.mark.smoke
+@pytest.mark.feature("projects")
 @allure.title("Проверка создания проекта")
+@allure.description("Проверяет создание нового проекта на странице /projects.")
 def test_create_project(page: Page):
     with allure.step("Открыть страницу проектов с помощью метода navigate()"):
         project_page = ProjectPage(page).navigate()
