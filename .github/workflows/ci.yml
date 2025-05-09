@@ -34,4 +34,14 @@ jobs:
           playwright install
 
       - name: Run tests
-        run: pytest
+        run: pytest --alluredir=allure-results
+
+      - name: Upload Allure results
+        uses: actions/upload-artifact@v3
+        if: always()
+        with:
+          name: allure-results
+          path: allure-results/
+
+      - name: Check PEP 8
+        run: flake8 .
