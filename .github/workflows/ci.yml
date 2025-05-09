@@ -35,11 +35,13 @@ jobs:
         run: |
           pip install playwright
           playwright install
+          playwright install --with-deps
+          playwright --version
 
       - name: Run tests
         run: |
           echo "Starting pytest..."
-          pytest --alluredir=allure-results -v
+          pytest --alluredir=allure-results -v --tb=short
           echo "Pytest completed."
 
       - name: Upload Allure results
