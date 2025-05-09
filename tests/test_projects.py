@@ -1,6 +1,6 @@
 from playwright.sync_api import Page
 import allure
-from pages.project_page import ProjectPage
+from pages.projects_page import ProjectPage
 
 @allure.title("Проверка создания проекта")
 def test_create_project(page: Page):
