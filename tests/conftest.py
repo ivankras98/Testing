@@ -14,7 +14,7 @@ def pytest_configure(config):
 @pytest.fixture(scope="session")
 def browser(playwright: Playwright):
     logger.info("Запуск браузера Chromium в режиме без headless")
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(headless=True)
     yield browser
     logger.info("Закрытие браузера")
     browser.close()
