@@ -1,6 +1,9 @@
-@allure.title("Проверка создания проекта")
 from playwright.sync_api import Page
-def test_create_project(page):
+import allure
+from pages.project_page import ProjectPage
+
+@allure.title("Проверка создания проекта")
+def test_create_project(page: Page):
     with allure.step("Открыть страницу проектов с помощью метода navigate()"):
         project_page = ProjectPage(page).navigate()
     with allure.step("Ввести название 'Test Project' в поле 'input[name='projectName']'"):
