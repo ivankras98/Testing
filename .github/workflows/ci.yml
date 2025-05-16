@@ -111,6 +111,7 @@ jobs:
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000 || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000/authentication || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3001/health || exit 1
+          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' || exit 1
           echo "Application is accessible"
 
       # Запуск тестов
