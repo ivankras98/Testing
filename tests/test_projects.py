@@ -1,23 +1,29 @@
+import pytest
 import allure
-from pages.projects_page import ProjectsPage
-from utils.logger import logger
+from pages.project_page import ProjectPage
+from pages.dashboard_page import DashboardPage
 
-@allure.title("Проверка создания проекта")
-@allure.description("Тестирует создание нового проекта через кнопку 'Создать проект' с заполнением формы.")
-def test_create_project(logged_in_page):
-    # Создаём объект ProjectsPage напрямую, используя Playwright Page из logged_in_page
-    projects_page = ProjectsPage(logged_in_page.page)
-    # Переходим на страницу дашборда через метод navigate() в ProjectsPage
-    projects_page.navigate()
-    projects_page.open_sidebar()
-    projects_page.open_create_project_form()
-    projects_page.fill_create_project_form(
-        name="Test Project",
-        description="Test description",
-        start_date="2025-05-01",  # Формат YYYY-MM-DD для input type="date"
-        end_date="2025-05-31",    # Формат YYYY-MM-DD для input type="date"
-        status="In Progress"
-    )
-    projects_page.submit_create_project_form()
-    assert projects_page.is_project_created(), "Проект не был создан"
-    logger.info("Проект успешно создан и проверен")
+@pytest.mark.smoke
+@pytest.mark.projects
+@allure.title("Проверка создания нового проекта")
+@allure.description("Проверяет успешное создание нового проекта на странице /dashboard с заполнением всех полей и отображением проекта.")
+def test_create_project(logged_in_page: DashboardPage):
+    project_page = ProjectPage(logged_in_page.page)  # Используем страницу из logged_in_page
+    with allure.step("Открыть страницу дашборда"):
+        project_page.navigate()
+    with allure.step("Открыть форму создания проекта"):
+        project_page.open_create_project_form()
+    with allure.step("Ввести название проекта"):
+        project_name = project_page.fill_project_name()
+    with allure.step("Ввести описание проекта"):
+        project_page.fill_description()
+    with allure.step("Ввести дату начала проекта"):
+        start_date = project_page.fill_start_date()
+    with allure.step("Ввести дату окончания проекта"):
+        project_page.fill_end_date(start_date)
+    with allure.step("Выбрать статус проекта"):
+        project_page.fill_status()
+    with allure.step("Нажать кнопку 'Create'"):
+        project_page.submit_create_project()
+    with allure.step("Проверить отображение созданного проекта"):
+        assert project_page.is_project_visible(project_name), "Созданный проект не отображается"
