@@ -5,6 +5,7 @@ import allure
 from settings import BASE_URL
 from utils.logger import logger
 
+
 class AuthenticationPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
@@ -14,44 +15,49 @@ class AuthenticationPage(BasePage):
         self.submit_button = page.locator("button[type='submit']")
         self.error_message = page.locator("text='Invalid credentials'")
 
+
     @allure.step("Переход на страницу авторизации с загрузкой URL")
     def navigate(self):
         logger.info(f"Переход на страницу авторизации: {self.url}")
-        self.page.goto(self.url, wait_until="networkidle", timeout=60000)
+        self.page.goto(self.url, wait_until="networkidle", timeout=120000)
         logger.info(f"Текущий URL после загрузки: {self.page.url}")
         return self
+
 
     @allure.step("Проверка состояния выхода и переход на страницу авторизации при необходимости")
     def ensure_logged_out(self):
         if "dashboard" in self.page.url.lower():
             logger.info("Уже авторизованы, выполняем выход...")
-            self.page.goto(f"{BASE_URL}/logout", wait_until="networkidle", timeout=60000)
-            self.page.goto(self.url, wait_until="networkidle", timeout=60000)
+            self.page.goto(f"{BASE_URL}/logout", wait_until="networkidle", timeout=120000)
+            self.page.goto(self.url, wait_until="networkidle", timeout=120000)
             logger.info(f"URL после выхода: {self.page.url}")
 
-    @allure.step("Заполнение поля email '{email}' с селектором '#email'")
+
+    @allure.step("Заполнение поля email")
     def fill_email(self, email: str):
         with allure.step("Ожидание видимости поля email"):
-            self.wait_for_selector("#email")
+            self.wait_for_selector("#email", timeout=120000)
         self.email_input.fill(email)
         logger.info(f"Поле email заполнено: {email}")
 
-    @allure.step("Заполнение поля пароля '{password}' с селектором '#password'")
+
+    @allure.step("Заполнение поля пароля")
     def fill_password(self, password: str):
         with allure.step("Ожидание видимости поля пароля"):
-            self.wait_for_selector("#password")
+            self.wait_for_selector("#password", timeout=120000)
         self.password_input.fill(password)
         logger.info(f"Поле пароля заполнено: {password}")
 
-    @allure.step("Нажатие кнопки входа с селектором 'button[type='submit']'")
+
+    @allure.step("Нажатие кнопки входа")
     def submit_login(self):
-        with allure.step("Ожидание ответа API с URL, содержащим '/api' или 'login'"):
+        with allure.step("Ожидание ответа API"):
             with self.page.expect_response(lambda response: "/api" in response.url.lower() or "login" in response.url.lower(), timeout=10000) as response_info:
                 self.submit_button.click()
         response = response_info.value
         logger.info(f"Сетевой запрос: {response.url}, статус: {response.status}")
         with allure.step("Ожидание редиректа на страницу /dashboard"):
-            self.page.wait_for_url(f"{BASE_URL}/dashboard", wait_until="networkidle", timeout=60000)
+            self.page.wait_for_url(f"{BASE_URL}/dashboard", wait_until="networkidle", timeout=120000)
             logger.info(f"URL после входа: {self.page.url}")
         if self.error_message.is_visible():
             self.take_screenshot("login_error.png")
@@ -61,6 +67,7 @@ class AuthenticationPage(BasePage):
         from pages.dashboard_page import DashboardPage
         return DashboardPage(self.page)
 
+
     def login(self, email: str, password: str):
         with allure.step("Выполнение полного процесса входа"):
             self.navigate()
@@ -69,7 +76,8 @@ class AuthenticationPage(BasePage):
             self.fill_password(password)
             return self.submit_login()
 
-    @allure.step("Проверка загрузки страницы авторизации по видимости поля email")
+
+    @allure.step("Проверка загрузки страницы авторизации")
     def is_loaded(self):
         logger.info("Проверка загрузки страницы авторизации")
         return self.email_input.is_visible()

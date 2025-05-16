@@ -7,20 +7,20 @@ from playwright.sync_api import Page
 from settings import EMAIL, PASSWORD
 from utils.logger import logger
 
+
 @pytest.mark.smoke
-@pytest.mark.feature("authentication")
+@pytest.mark.authentication
 @allure.title("Проверка успешного входа в систему")
 @allure.description("Проверяет успешный вход с валидными данными с редиректом на страницу /dashboard.")
 def test_login(page: Page):
-    with allure.step("Открыть страницу авторизации с помощью метода navigate()"):
+    with allure.step("Открыть страницу авторизации"):
         auth_page = AuthenticationPage(page).navigate()
-    with allure.step("Ввести email в поле с селектором '#email'"):
+    with allure.step("Ввести email и пароль"):
         auth_page.fill_email(EMAIL)
-    with allure.step("Ввести пароль в поле с селектором '#password'"):
         auth_page.fill_password(PASSWORD)
-    with allure.step("Нажать кнопку 'Войти' с селектором 'button[type='submit']'"):
+    with allure.step("Нажать кнопку 'Войти'"):
         dashboard_page = auth_page.submit_login()
-    with allure.step("Проверить загрузку дашборда по URL и видимости элемента"):
+    with allure.step("Проверить загрузку дашборда"):
         assert dashboard_page.is_loaded(), "Дашборд не загружен после входа"
         try:
             page.wait_for_selector("h1, h2, div[class*='dashboard']", state="visible", timeout=5000)

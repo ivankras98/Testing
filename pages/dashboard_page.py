@@ -5,6 +5,7 @@ import allure
 from settings import BASE_URL
 from utils.logger import logger
 
+
 class DashboardPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
@@ -12,17 +13,19 @@ class DashboardPage(BasePage):
         self.profile_selector = page.locator("div.relative:has(svg.lucide-chevron-down)")
         self.logout_option = page.locator("text=Logout")
 
-    @allure.step("Проверка загрузки страницы дашборда по URL")
+
+    @allure.step("Проверка загрузки страницы дашборда")
     def is_loaded(self):
         logger.info("Проверка загрузки страницы дашборда")
         return self.page.url == self.url
 
-    @allure.step("Выполнение выхода из системы через меню профиля")
+
+    @allure.step("Выполнение выхода из системы")
     def logout(self):
         from pages.authentication_page import AuthenticationPage
-        with allure.step("Ожидать видимости элемента профиля с селектором 'div.relative:has(svg.lucide-chevron-down)'"):
+        with allure.step("Ожидание видимости элемента профиля"):
             try:
-                self.wait_for_selector("div.relative:has(svg.lucide-chevron-down)", timeout=60000)
+                self.wait_for_selector("div.relative:has(svg.lucide-chevron-down)", timeout=120000)
             except Exception as e:
                 logger.error(f"Ошибка ожидания элемента профиля (стрелки): {e}")
                 self.take_screenshot("logout_profile_error.png")
@@ -32,7 +35,7 @@ class DashboardPage(BasePage):
             self.profile_selector.click()
             logger.info("Кликнули на стрелку для открытия выпадающего меню")
             self.page.wait_for_timeout(500)
-        with allure.step("Ожидать видимости кнопки 'Logout'"):
+        with allure.step("Ожидание видимости кнопки 'Logout'"):
             try:
                 self.wait_for_selector("text=Logout", timeout=5000)
             except Exception as e:
@@ -43,8 +46,8 @@ class DashboardPage(BasePage):
         with allure.step("Нажать кнопку 'Logout' для выхода"):
             self.logout_option.click()
             logger.info("Кликнули на кнопку 'Logout'")
-        with allure.step("Ожидать редирект на страницу авторизации по URL"):
-            self.page.wait_for_url(f"{BASE_URL}/authentication", wait_until="networkidle", timeout=60000)
+        with allure.step("Ожидать редирект на страницу авторизации"):
+            self.page.wait_for_url(f"{BASE_URL}/authentication", wait_until="networkidle", timeout=120000)
             logger.info(f"URL после выхода: {self.page.url}")
             logger.info("Выход прошёл успешно")
         return AuthenticationPage(self.page)

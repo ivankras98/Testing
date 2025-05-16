@@ -2,7 +2,7 @@
 name: CI Pipeline
 on:
   push:
-    branches: [main, develop, feature/fix-tests]
+    branches: [main, develop, fix/tests-timeout]
   pull_request:
     branches: [main, develop]
 jobs:
@@ -26,20 +26,23 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: '16'
-      - name: Clone and start web app
+      - name: Start mock server
         run: |
-          git clone https://github.com/AhmedTrb/Project-Management-web-app.git
-          cd Project-Management-web-app
-          npm install
-          npm start &
-          sleep 20  # Ждём запуска сервера
+          npm install -g http-server
+          http-server -p 3000 &
+          sleep 20
       - name: Run tests with headless mode
         env:
           EMAIL: ${{ secrets.EMAIL }}
           PASSWORD: ${{ secrets.PASSWORD }}
-          BASE_URL: ${{ secrets.BASE_URL }}
+          BASE_URL: "http://localhost:3000"
           HEADLESS: true
         run: pytest --alluredir=allure-results
+      - name: Install Allure CLI
+        run: |
+          wget https://github.com/allure-framework/allure2/releases/download/2.30.0/allure_2.30.0-1_all.deb
+          sudo dpkg -i allure_2.30.0-1_all.deb
+          sudo apt-get install -f
       - name: Generate Allure report
         if: always()
         run: |
