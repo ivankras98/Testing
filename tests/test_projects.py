@@ -8,14 +8,23 @@ from playwright.sync_api import Page
 @pytest.mark.smoke
 @pytest.mark.projects
 @allure.title("Проверка создания нового проекта")
-@allure.description("Проверяет успешное создание нового проекта на странице /projects с отображением созданного проекта.")
+@allure.description("Проверяет успешное создание нового проекта на странице /dashboard с заполнением всех полей и отображением проекта.")
 def test_create_project(page: Page):
-    project_name = "Test Project"
-    with allure.step("Открыть страницу создания проекта"):
+    with allure.step("Открыть страницу дашборда"):
         project_page = ProjectPage(page).navigate()
+    with allure.step("Открыть форму создания проекта"):
+        project_page.open_create_project_form()
     with allure.step("Ввести название проекта"):
-        project_page.enter_project_name(project_name)
-    with allure.step("Нажать кнопку 'Создать'"):
-        project_page.click_create()
+        project_name = project_page.fill_project_name()
+    with allure.step("Ввести описание проекта"):
+        project_page.fill_description()
+    with allure.step("Ввести дату начала проекта"):
+        start_date = project_page.fill_start_date()
+    with allure.step("Ввести дату окончания проекта"):
+        project_page.fill_end_date(start_date)
+    with allure.step("Выбрать статус проекта"):
+        project_page.fill_status()
+    with allure.step("Нажать кнопку 'Create'"):
+        project_page.submit_create_project()
     with allure.step("Проверить отображение созданного проекта"):
         assert project_page.is_project_visible(project_name), "Созданный проект не отображается"
