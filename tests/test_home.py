@@ -1,16 +1,11 @@
-# test_home.py
-import pytest
 import allure
 from pages.home_page import HomePage
 from playwright.sync_api import Page
+from utils.logger import logger
 
-
-@pytest.mark.smoke
-@pytest.mark.homepage
 @allure.title("Проверка загрузки главной страницы")
-@allure.description("Проверяет редирект на страницу авторизации при отсутствии авторизации.")
+@allure.description("Проверяет, что главная страница загружается и содержит заголовок 'ProjectM'.")
 def test_homepage_loads(page: Page):
-    with allure.step("Открыть главную страницу"):
-        home_page = HomePage(page).navigate()
-    with allure.step("Проверить редирект на страницу авторизации"):
-        assert "authentication" in page.url, "Ожидался редирект на страницу авторизации"
+    home_page = HomePage(page).navigate()
+    assert home_page.is_loaded(), "Главная страница не загрузилась или заголовок неверный"
+    logger.info("Главная страница успешно загружена")
