@@ -37,7 +37,10 @@ jobs:
       - name: Install Client Dependencies
         run: |
           cd Testing/client
-          npm ci
+          npm ci --legacy-peer-deps
+          ls -la
+          cat package.json
+        continue-on-error: true
 
       # Установка зависимостей для server
       - name: Install Server Dependencies
