@@ -14,7 +14,7 @@ class ProjectPage(BasePage):
         self.url = f"{BASE_URL}/dashboard"
         self.plus_button = page.locator("button:has(svg.lucide-plus)")
         self.project_name_input = page.locator("input[placeholder='Project Name']")
-        self.description_input = page.locator("textarea[placeholder='Description']")
+        self.description_input = page.locator("textarea[placeholder='Project Description']")
         self.start_date_input = page.locator("input[placeholder='Start Date']")
         self.end_date_input = page.locator("input[placeholder='End Date']")
         self.status_select = page.locator("select")
@@ -50,10 +50,10 @@ class ProjectPage(BasePage):
     @allure.step("Заполнение поля 'Description'")
     def fill_description(self):
         description = f"Description-{random.randint(1000, 9999)}"
-        with allure.step("Ожидание видимости поля 'Description'"):
-            self.wait_for_selector("textarea[placeholder='Description']", timeout=120000)
+        with allure.step("Ожидание видимости поля 'Project Description'"):
+            self.wait_for_selector("textarea[placeholder='Project Description']", timeout=120000)
         self.description_input.fill(description)
-        logger.info(f"Поле 'Description' заполнено: {description}")
+        logger.info(f"Поле 'Project Description' заполнено: {description}")
         return description
 
 
