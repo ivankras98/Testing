@@ -42,7 +42,7 @@ jobs:
       - name: Install Client Dependencies
         run: |
           cd Testing/client
-          npm ci --prefer-offline --cache .npm
+          npm ci --legacy-peer-deps --prefer-offline --cache .npm
           ls -la
           cat package.json
           echo "Client dependencies installed"
@@ -86,7 +86,7 @@ jobs:
           ps aux | grep node || echo "No node processes running"
           echo "Server started"
         env:
-          PORT: 3001  # Устанавливаем порт для сервера
+          PORT: 3001
 
       # Запуск клиента в фоновом режиме
       - name: Start Client
