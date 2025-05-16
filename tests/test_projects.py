@@ -1,17 +1,16 @@
-# test_projects.py
 import pytest
 import allure
 from pages.project_page import ProjectPage
-from playwright.sync_api import Page
-
+from pages.dashboard_page import DashboardPage
 
 @pytest.mark.smoke
 @pytest.mark.projects
 @allure.title("Проверка создания нового проекта")
 @allure.description("Проверяет успешное создание нового проекта на странице /dashboard с заполнением всех полей и отображением проекта.")
-def test_create_project(page: Page):
+def test_create_project(logged_in_page: DashboardPage):
+    project_page = ProjectPage(logged_in_page.page)  # Используем страницу из logged_in_page
     with allure.step("Открыть страницу дашборда"):
-        project_page = ProjectPage(page).navigate()
+        project_page.navigate()
     with allure.step("Открыть форму создания проекта"):
         project_page.open_create_project_form()
     with allure.step("Ввести название проекта"):
