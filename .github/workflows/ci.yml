@@ -40,39 +40,50 @@ jobs:
           npm ci --legacy-peer-deps
           ls -la
           cat package.json
-        continue-on-error: true
+          npm run dev -- --help  # Проверка команды dev
+          echo "Client dependencies installed"
 
       # Установка зависимостей для server
       - name: Install Server Dependencies
         run: |
           cd Testing/server
           npm ci
+          ls -la
+          cat package.json
+          npm run start -- --help  # Проверка команды start
+          echo "Server dependencies installed"
 
       # Установка зависимостей для тестов
       - name: Install Test Dependencies
         run: |
           cd Testing
           pip install -r requirements.txt
+          echo "Test dependencies installed"
 
       # Запуск сервера в фоновом режиме
       - name: Start Server
         run: |
           cd Testing/server
           npm run start &
-          sleep 10  # Даем серверу время запуститься
+          sleep 20  # Увеличено время ожидания
+          netstat -tulnp | grep 3000 || echo "No process listening on port 3000"
+          echo "Server started"
 
       # Запуск клиента в фоновом режиме
       - name: Start Client
         run: |
           cd Testing/client
           npm run dev &
-          sleep 10  # Даем клиенту время запуститься
+          sleep 20  # Увеличено время ожидания
+          netstat -tulnp | grep 3000 || echo "No process listening on port 3000"
+          echo "Client started"
 
       # Проверка доступности приложения
       - name: Check Application Availability
         run: |
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000 || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000/authentication || exit 1
+          echo "Application is accessible"
 
       # Запуск тестов
       - name: Run Tests
@@ -93,6 +104,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+      # Загрузка отчета Allure
       - name: Upload Allure Report
         if: always()
         uses: actions/upload-artifact@v4
