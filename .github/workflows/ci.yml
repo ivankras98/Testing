@@ -67,6 +67,15 @@ jobs:
           ls -la dist || echo "No dist directory found"
           echo "Server built"
 
+      # Настройка тестовой базы данных
+      - name: Setup Test Database
+        run: |
+          cd Testing/server
+          echo "DATABASE_URL=file:./test.db" > .env
+          echo "PORT=8000" >> .env
+          npx prisma migrate deploy
+          echo "Test database set up"
+
       # Установка зависимостей для тестов
       - name: Install Test Dependencies
         run: |
@@ -83,19 +92,19 @@ jobs:
           playwright install --with-deps chromium
           echo "Playwright browsers installed"
 
-      # Запуск сервера в фоновом режиме
+      # Запуск сервера на порту 8000
       - name: Start Server
         run: |
           cd Testing/server
           npm run start &
           sleep 30
-          netstat -tulnp | grep 3001 || echo "No process listening on port 3001"
+          netstat -tulnp | grep 8000 || echo "No process listening on port 8000"
           ps aux | grep node || echo "No node processes running"
           echo "Server started"
         env:
-          PORT: 3001
+          PORT: 8000
 
-      # Запуск клиента в фоновом режиме
+      # Запуск клиента на порту 3000
       - name: Start Client
         run: |
           cd Testing/client
@@ -110,8 +119,7 @@ jobs:
         run: |
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000 || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000/authentication || exit 1
-          curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3001/health || exit 1
-          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:3001/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' || exit 1
+          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' || exit 1
           echo "Application is accessible"
 
       # Запуск тестов
