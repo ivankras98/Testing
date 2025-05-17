@@ -58,23 +58,37 @@ jobs:
           echo "Server dependencies installed"
         timeout-minutes: 5
 
+      # Настройка Prisma для SQLite
+      - name: Configure Prisma for SQLite
+        run: |
+          cd Testing/server
+          sed -i 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
+          echo "DATABASE_URL=file:./test.db" > .env
+          echo "PORT=8000" >> .env
+          cat prisma/schema.prisma
+          echo "Prisma configured for SQLite"
+
+      # Генерация Prisma клиента
+      - name: Generate Prisma Client
+        run: |
+          cd Testing/server
+          npx prisma generate
+          echo "Prisma client generated"
+
+      # Применение миграций
+      - name: Run Prisma Migrations
+        run: |
+          cd Testing/server
+          npx prisma migrate deploy
+          echo "Prisma migrations applied"
+
       # Сборка server
       - name: Build Server
         run: |
           cd Testing/server
-          npx prisma generate
           npx tsc
           ls -la dist || echo "No dist directory found"
           echo "Server built"
-
-      # Настройка тестовой базы данных
-      - name: Setup Test Database
-        run: |
-          cd Testing/server
-          echo "DATABASE_URL=file:./test.db" > .env
-          echo "PORT=8000" >> .env
-          npx prisma migrate deploy
-          echo "Test database set up"
 
       # Установка зависимостей для тестов
       - name: Install Test Dependencies
@@ -103,6 +117,7 @@ jobs:
           echo "Server started"
         env:
           PORT: 8000
+          DATABASE_URL: file:./test.db
 
       # Запуск клиента на порту 3000
       - name: Start Client
@@ -119,18 +134,18 @@ jobs:
         run: |
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000 || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000/authentication || exit 1
-          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' || exit 1
+          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' -v || exit 1
           echo "Application is accessible"
 
       # Запуск тестов
       - name: Run Tests
         run: |
           cd Testing
-          pytest --alluredir=allure-results
+          pytest --alluredir=allure-results -v
         env:
           BASE_URL: http://localhost:3000
-          EMAIL: ${{ secrets.EMAIL }}
-          PASSWORD: ${{ secrets.PASSWORD }}
+          EMAIL: test@example.com
+          PASSWORD: password
 
       # Генерация и загрузка отчета Allure
       - name: Generate Allure Report
