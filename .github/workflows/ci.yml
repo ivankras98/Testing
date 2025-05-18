@@ -65,6 +65,7 @@ jobs:
           sed -i 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
           echo "DATABASE_URL=file:./test.db" > .env
           echo "PORT=8000" >> .env
+          cat .env
           cat prisma/schema.prisma
           echo "Prisma configured for SQLite"
 
@@ -81,6 +82,13 @@ jobs:
           cd Testing/server
           npx prisma migrate deploy
           echo "Prisma migrations applied"
+
+      # Создание тестового пользователя
+      - name: Seed Test Database
+        run: |
+          cd Testing/server
+          npx ts-node src/seed.ts
+          echo "Test database seeded"
 
       # Сборка server
       - name: Build Server
