@@ -62,7 +62,8 @@ jobs:
       - name: Configure Prisma for SQLite
         run: |
           cd Testing/server
-          sed -i 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
+          ls -la prisma/
+          sed -i'.bak' 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
           echo "DATABASE_URL=file:./test.db" > .env
           echo "PORT=8000" >> .env
           cat .env
