@@ -76,6 +76,13 @@ jobs:
           pip show allure-pytest
           echo "Test dependencies installed"
 
+      # Установка браузеров Playwright
+      - name: Install Playwright Browsers
+        run: |
+          cd Testing
+          playwright install --with-deps chromium
+          echo "Playwright browsers installed"
+
       # Запуск сервера в фоновом режиме
       - name: Start Server
         run: |
