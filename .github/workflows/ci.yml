@@ -63,7 +63,11 @@ jobs:
         run: |
           cd Testing/server
           ls -la prisma/
-          sed -i'.bak' 's/provider = "postgresql"/provider = "sqlite"/' prisma/schema.prisma
+          dos2unix prisma/schema.prisma || echo "dos2unix not installed, skipping"
+          cat prisma/schema.prisma > schema.prisma.before
+          sed -i'.bak' 's/provider[ \t]*=[ \t]*"postgresql"/provider = "sqlite"/' prisma/schema.prisma || (echo "Sed failed, rewriting manually" && awk 'BEGIN {p=1} /datasource db/ {p=0; print "datasource db {\n  provider = \"sqlite\"\n  url      = env(\"DATABASE_URL\")\n}"} p' prisma/schema.prisma.before > prisma/schema.prisma)
+          cat prisma/schema.prisma > schema.prisma.after
+          diff schema.prisma.before schema.prisma.after || echo "No changes made"
           echo "DATABASE_URL=file:./test.db" > .env
           echo "PORT=8000" >> .env
           cat .env
