@@ -93,7 +93,7 @@ jobs:
           ps aux | grep node || echo "No node processes running"
           echo "Server started"
         env:
-          PORT: 3001
+          PORT: 8000
 
       # Запуск клиента в фоновом режиме
       - name: Start Client
