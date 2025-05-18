@@ -58,48 +58,11 @@ jobs:
           echo "Server dependencies installed"
         timeout-minutes: 5
 
-      # Настройка Prisma для SQLite
-      - name: Configure Prisma for SQLite
-        run: |
-          cd Testing/server
-          ls -la prisma/
-          dos2unix prisma/schema.prisma || echo "dos2unix not installed, skipping"
-          cat prisma/schema.prisma > schema.prisma.before
-          sed -i'.bak' 's/provider[ \t]*=[ \t]*"postgresql"/provider = "sqlite"/' prisma/schema.prisma
-          sed -i'.bak2' 's/@db\.Text//g' prisma/schema.prisma
-          cat prisma/schema.prisma > schema.prisma.after
-          diff schema.prisma.before schema.prisma.after || echo "No changes made"
-          echo "DATABASE_URL=file:./test.db" > .env
-          echo "PORT=8000" >> .env
-          cat .env
-          cat prisma/schema.prisma
-          echo "Prisma configured for SQLite"
-
-      # Генерация Prisma клиента
-      - name: Generate Prisma Client
-        run: |
-          cd Testing/server
-          npx prisma generate
-          echo "Prisma client generated"
-
-      # Применение миграций
-      - name: Run Prisma Migrations
-        run: |
-          cd Testing/server
-          npx prisma migrate deploy
-          echo "Prisma migrations applied"
-
-      # Создание тестового пользователя
-      - name: Seed Test Database
-        run: |
-          cd Testing/server
-          npx ts-node src/seed.ts
-          echo "Test database seeded"
-
       # Сборка server
       - name: Build Server
         run: |
           cd Testing/server
+          npx prisma generate
           npx tsc
           ls -la dist || echo "No dist directory found"
           echo "Server built"
@@ -113,27 +76,19 @@ jobs:
           pip show allure-pytest
           echo "Test dependencies installed"
 
-      # Установка браузеров Playwright
-      - name: Install Playwright Browsers
-        run: |
-          cd Testing
-          playwright install --with-deps chromium
-          echo "Playwright browsers installed"
-
-      # Запуск сервера на порту 8000
+      # Запуск сервера в фоновом режиме
       - name: Start Server
         run: |
           cd Testing/server
           npm run start &
           sleep 30
-          netstat -tulnp | grep 8000 || echo "No process listening on port 8000"
+          netstat -tulnp | grep 3001 || echo "No process listening on port 3001"
           ps aux | grep node || echo "No node processes running"
           echo "Server started"
         env:
-          PORT: 8000
-          DATABASE_URL: file:./test.db
+          PORT: 3001
 
-      # Запуск клиента на порту 3000
+      # Запуск клиента в фоновом режиме
       - name: Start Client
         run: |
           cd Testing/client
@@ -148,18 +103,18 @@ jobs:
         run: |
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000 || exit 1
           curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3000/authentication || exit 1
-          curl --retry 5 --retry-delay 5 --retry-max-time 30 -X POST http://localhost:8000/api/auth/login -H "Content-Type: application/json" -d '{"email":"test@example.com","password":"password"}' -v || exit 1
+          curl --retry 5 --retry-delay 5 --retry-max-time 30 http://localhost:3001/health || exit 1
           echo "Application is accessible"
 
       # Запуск тестов
       - name: Run Tests
         run: |
           cd Testing
-          pytest --alluredir=allure-results -v
+          pytest --alluredir=allure-results
         env:
           BASE_URL: http://localhost:3000
-          EMAIL: test@example.com
-          PASSWORD: password
+          EMAIL: ${{ secrets.EMAIL }}
+          PASSWORD: ${{ secrets.PASSWORD }}
 
       # Генерация и загрузка отчета Allure
       - name: Generate Allure Report
