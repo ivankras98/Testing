@@ -89,7 +89,7 @@ jobs:
           cd Testing/server
           npm run start &
           sleep 30
-          netstat -tulnp | grep 3001 || echo "No process listening on port 3001"
+          netstat -tulnp | grep 8000 || echo "No process listening on port 3001"
           ps aux | grep node || echo "No node processes running"
           echo "Server started"
         env:
