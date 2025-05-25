@@ -7,6 +7,7 @@ from pages.messages_page import MessagesPage
 from pages.settings_page import SettingsPage
 from pages.tasks_page import TasksPage
 from pages.members_page import MembersPage
+from pages.project_view_page import ProjectViewPage
 from utils.logger import logger
 
 class DashboardPage(BasePage):
@@ -65,6 +66,93 @@ class DashboardPage(BasePage):
         self.menu_toggle.click()
         self.page.wait_for_timeout(500)  # Ждём, чтобы меню открылось
         return self
+
+
+    @allure.step("Открытие второго проекта")
+    def open_second_project(self):
+        logger.info("Открытие второго проекта")
+        # Открываем боковое меню
+        self.open_side_menu()
+
+        # Находим второй проект в списке (индекс 1, так как нумерация начинается с 0)
+        second_project = self.project_items.nth(1)
+        project_name = second_project.locator("p.text-sm.font-medium").text_content().strip()
+        logger.info(f"Выбран второй проект для открытия: {project_name}")
+
+        # Нажимаем на троеточие рядом с вторым проектом
+        ellipsis = second_project.locator("svg.lucide-ellipsis.text-gray-500")
+        ellipsis.click()
+
+        # Ждём появления контекстного меню
+        try:
+            self.context_menu.wait_for(state="visible", timeout=10000)
+            open_button = self.context_menu.locator("p.text-sm:has-text('Open')")
+            open_button.wait_for(state="visible", timeout=5000)
+            open_button.click()
+            logger.info(f"Нажата кнопка Open для проекта {project_name}")
+            project_url = second_project.get_attribute("href")
+            self.page.wait_for_url(f"{os.getenv('BASE_URL')}{project_url}", wait_until="networkidle", timeout=60000)
+        except Exception as e:
+            logger.error(f"Ошибка при открытии контекстного меню или нажатии на Open: {e}")
+            self.take_screenshot("open_project_error.png")
+            allure.attach.file("open_project_error.png", name="Скриншот ошибки открытия проекта", attachment_type=allure.attachment_type.PNG)
+            page_content = self.page.content()
+            logger.info(f"Содержимое страницы: {page_content}")
+            allure.attach(page_content, name="HTML страницы", attachment_type=allure.attachment_type.HTML)
+            raise
+
+        logger.info(f"Проект {project_name} открыт, URL: {self.page.url}")
+        return project_url
+
+
+
+
+    @allure.step("Открытие третьего проекта")
+    def open_third_project(self):
+        logger.info("Открытие третьего проекта")
+        # Открываем боковое меню
+        self.open_side_menu()
+
+        # Проверяем, что в списке достаточно проектов
+        project_count = self.project_items.count()
+        logger.info(f"Количество проектов в списке: {project_count}")
+        assert project_count >= 3, "В списке должно быть как минимум 3 проекта для открытия третьего"
+
+        # Находим третий проект в списке (индекс 2, так как нумерация начинается с 0)
+        third_project = self.project_items.nth(2)
+        project_name = third_project.locator("p.text-sm.font-medium").text_content().strip()
+        logger.info(f"Выбран третий проект для открытия: {project_name}")
+
+        # Нажимаем на троеточие рядом с третьим проектом
+        ellipsis = third_project.locator("svg.lucide-ellipsis.text-gray-500")
+        ellipsis.click()
+
+        # Ждём появления контекстного меню
+        try:
+            self.context_menu.wait_for(state="visible", timeout=10000)
+            open_button = self.context_menu.locator("p.text-sm:has-text('Open')")
+            open_button.wait_for(state="visible", timeout=5000)
+            open_button.click()
+            logger.info(f"Нажата кнопка Open для проекта {project_name}")
+            project_url = third_project.get_attribute("href")
+            project_id = project_url.split("/")[-1]
+            self.page.wait_for_url(f"{os.getenv('BASE_URL')}{project_url}", wait_until="networkidle", timeout=60000)
+        except Exception as e:
+            logger.error(f"Ошибка при открытии контекстного меню или нажатии на Open: {e}")
+            self.take_screenshot("open_project_error.png")
+            allure.attach.file("open_project_error.png", name="Скриншот ошибки открытия проекта", attachment_type=allure.attachment_type.PNG)
+            page_content = self.page.content()
+            logger.info(f"Содержимое страницы: {page_content}")
+            allure.attach(page_content, name="HTML страницы", attachment_type=allure.attachment_type.HTML)
+            raise
+
+        logger.info(f"Проект {project_name} открыт, URL: {self.page.url}")
+        return ProjectViewPage(self.page), project_id
+
+
+
+
+
 
     @allure.step("Удаление первого проекта")
     def delete_first_project(self):
