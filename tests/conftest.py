@@ -19,7 +19,7 @@ def pytest_configure(config):
 
 @pytest.fixture(scope="session")
 def browser(playwright: Playwright, request):
-    headless = os.getenv("HEADLESS", "false").lower() == "false"
+    headless = os.getenv("HEADLESS", "false").lower() == "true"
     logger.info(f"Запуск браузера Chromium в режиме headless={headless}")
     browser = playwright.chromium.launch(headless=headless)
     yield browser
