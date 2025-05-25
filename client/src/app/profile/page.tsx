@@ -3,7 +3,6 @@ import React from "react";
 import { useAppSelector } from "../redux";
 import Image from "next/image";
 
-
 const ProfilePage = () => {
   const user = useAppSelector((state) => state.auth.user);
   return (
@@ -11,11 +10,15 @@ const ProfilePage = () => {
       <div className="w-full bg-white rounded-lg shadow-lg p-8">
         <div className="flex justify-start items-center gap-x-4">
           {user?.profilePictureUrl ? (
-            <Image
-              src={user.profilePictureUrl}
-              alt="Profile"
-              className="w-32 h-32 rounded-full object-cover"
-            />
+            <div className="relative w-32 h-32">
+              <Image
+                src={user.profilePictureUrl}
+                alt="Profile"
+                fill
+                style={{ objectFit: "cover" }}
+                className="rounded-full"
+              />
+            </div>
           ) : (
             <div className="w-32 h-32 rounded-full bg-gray-200 flex items-center justify-center">
               <span className="text-2xl text-secondary-950">
