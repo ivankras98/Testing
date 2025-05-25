@@ -3,8 +3,8 @@ from playwright.sync_api import Page
 from pages.base_page import BasePage
 import allure
 from settings import BASE_URL
+import os
 from utils.logger import logger
-
 
 class AuthenticationPage(BasePage):
     def __init__(self, page: Page):
@@ -15,14 +15,12 @@ class AuthenticationPage(BasePage):
         self.submit_button = page.locator("button[type='submit']")
         self.error_message = page.locator("text='Invalid credentials'")
 
-
     @allure.step("Переход на страницу авторизации с загрузкой URL")
     def navigate(self):
         logger.info(f"Переход на страницу авторизации: {self.url}")
         self.page.goto(self.url, wait_until="networkidle", timeout=120000)
         logger.info(f"Текущий URL после загрузки: {self.page.url}")
         return self
-
 
     @allure.step("Проверка состояния выхода и переход на страницу авторизации при необходимости")
     def ensure_logged_out(self):
@@ -32,14 +30,12 @@ class AuthenticationPage(BasePage):
             self.page.goto(self.url, wait_until="networkidle", timeout=120000)
             logger.info(f"URL после выхода: {self.page.url}")
 
-
     @allure.step("Заполнение поля email")
     def fill_email(self, email: str):
         with allure.step("Ожидание видимости поля email"):
             self.wait_for_selector("#email", timeout=120000)
         self.email_input.fill(email)
         logger.info(f"Поле email заполнено: {email}")
-
 
     @allure.step("Заполнение поля пароля")
     def fill_password(self, password: str):
@@ -48,11 +44,12 @@ class AuthenticationPage(BasePage):
         self.password_input.fill(password)
         logger.info(f"Поле пароля заполнено: {password}")
 
-
     @allure.step("Нажатие кнопки входа")
     def submit_login(self):
-        with allure.step("Ожидание ответа API"):
-            with self.page.expect_response(lambda response: "/api" in response.url.lower() or "login" in response.url.lower(), timeout=10000) as response_info:
+        api_url = os.getenv("API_URL", f"{BASE_URL}")  # По умолчанию используем BASE_URL, если API_URL не задан
+        expected_login_url = f"{api_url}/api/auth/login"
+        with allure.step(f"Ожидание ответа API от {expected_login_url}"):
+            with self.page.expect_response(lambda response: response.url == expected_login_url, timeout=10000) as response_info:
                 self.submit_button.click()
         response = response_info.value
         logger.info(f"Сетевой запрос: {response.url}, статус: {response.status}")
@@ -67,7 +64,6 @@ class AuthenticationPage(BasePage):
         from pages.dashboard_page import DashboardPage
         return DashboardPage(self.page)
 
-
     def login(self, email: str, password: str):
         with allure.step("Выполнение полного процесса входа"):
             self.navigate()
@@ -75,7 +71,6 @@ class AuthenticationPage(BasePage):
             self.fill_email(email)
             self.fill_password(password)
             return self.submit_login()
-
 
     @allure.step("Проверка загрузки страницы авторизации")
     def is_loaded(self):
