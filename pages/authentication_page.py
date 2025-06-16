@@ -1,83 +1,81 @@
-# authentication_page.py
-from playwright.sync_api import Page
+import os
+from playwright.sync_api import Page, TimeoutError as PlaywrightTimeoutError
 from pages.base_page import BasePage
 import allure
-from settings import BASE_URL
 from utils.logger import logger
-
+from pages.dashboard_page import DashboardPage
 
 class AuthenticationPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.url = f"{BASE_URL}/authentication"
-        self.email_input = page.locator("#email")
-        self.password_input = page.locator("#password")
-        self.submit_button = page.locator("button[type='submit']")
-        self.error_message = page.locator("text='Invalid credentials'")
+        self.url = f"{os.getenv('BASE_URL', 'http://localhost:3000')}/authentication"
+        self.email_input = page.locator("input[placeholder='Enter your email']")
+        self.password_input = page.locator("input[placeholder='Enter your password']")
+        self.submit_button = page.locator("button:has-text('Sign In')")
+        self.error_message = page.locator("div.text-red-500:has-text('Invalid credentials'), div.text-red-500:has-text('Account locked'), div.text-red-500:has-text('Please fill in all fields')")
 
-
-    @allure.step("Переход на страницу авторизации с загрузкой URL")
-    def navigate(self):
-        logger.info(f"Переход на страницу авторизации: {self.url}")
-        self.page.goto(self.url, wait_until="networkidle", timeout=120000)
-        logger.info(f"Текущий URL после загрузки: {self.page.url}")
+    @allure.step("Переход на страницу")
+    def navigate(self, url=None):
+        target_url = url if url else self.url
+        logger.info(f"Navigating to {target_url}")
+        try:
+            self.page.goto(target_url, timeout=60000, wait_until="domcontentloaded")
+            if not url:  # Только для /authentication ждём видимости полей
+                self.email_input.wait_for(state="visible", timeout=60000)
+        except Exception as e:
+            logger.error(f"Navigation failed: {e}")
+            self.take_screenshot(f"navigation_error_{target_url.split('/')[-1]}.png")
+            allure.attach.file(f"navigation_error_{target_url.split('/')[-1]}.png", name="Navigation error screenshot", attachment_type=allure.attachment_type.PNG)
+            raise
         return self
-
-
-    @allure.step("Проверка состояния выхода и переход на страницу авторизации при необходимости")
-    def ensure_logged_out(self):
-        if "dashboard" in self.page.url.lower():
-            logger.info("Уже авторизованы, выполняем выход...")
-            self.page.goto(f"{BASE_URL}/logout", wait_until="networkidle", timeout=120000)
-            self.page.goto(self.url, wait_until="networkidle", timeout=120000)
-            logger.info(f"URL после выхода: {self.page.url}")
-
-
-    @allure.step("Заполнение поля email")
-    def fill_email(self, email: str):
-        with allure.step("Ожидание видимости поля email"):
-            self.wait_for_selector("#email", timeout=120000)
-        self.email_input.fill(email)
-        logger.info(f"Поле email заполнено: {email}")
-
-
-    @allure.step("Заполнение поля пароля")
-    def fill_password(self, password: str):
-        with allure.step("Ожидание видимости поля пароля"):
-            self.wait_for_selector("#password", timeout=120000)
-        self.password_input.fill(password)
-        logger.info(f"Поле пароля заполнено: {password}")
-
-
-    @allure.step("Нажатие кнопки входа")
-    def submit_login(self):
-        with allure.step("Ожидание ответа API"):
-            with self.page.expect_response(lambda response: "/api" in response.url.lower() or "login" in response.url.lower(), timeout=10000) as response_info:
-                self.submit_button.click()
-        response = response_info.value
-        logger.info(f"Сетевой запрос: {response.url}, статус: {response.status}")
-        with allure.step("Ожидание редиректа на страницу /dashboard"):
-            self.page.wait_for_url(f"{BASE_URL}/dashboard", wait_until="networkidle", timeout=120000)
-            logger.info(f"URL после входа: {self.page.url}")
-        if self.error_message.is_visible():
-            self.take_screenshot("login_error.png")
-            allure.attach.file("login_error.png", name="Скриншот ошибки входа", attachment_type=allure.attachment_type.PNG)
-            raise AssertionError("Вход не удался: отображено сообщение 'Invalid credentials'")
-        logger.info("Вход прошёл успешно")
-        from pages.dashboard_page import DashboardPage
-        return DashboardPage(self.page)
-
-
-    def login(self, email: str, password: str):
-        with allure.step("Выполнение полного процесса входа"):
-            self.navigate()
-            self.ensure_logged_out()
-            self.fill_email(email)
-            self.fill_password(password)
-            return self.submit_login()
-
 
     @allure.step("Проверка загрузки страницы авторизации")
     def is_loaded(self):
-        logger.info("Проверка загрузки страницы авторизации")
-        return self.email_input.is_visible()
+        current_url = self.page.url.rstrip('/')
+        expected_url = self.url.rstrip('/')
+        logger.info(f"Checking if authentication page is loaded: current URL={current_url}, expected URL={expected_url}")
+        return current_url == expected_url or "/authentication" in current_url
+
+    @allure.step("Ввод email: {email}")
+    def fill_email(self, email: str):
+        self.email_input.fill(email)
+        return self
+
+    @allure.step("Ввод пароля")
+    def fill_password(self, password: str):
+        self.password_input.fill(password)
+        return self
+
+    @allure.step("Отправка формы авторизации")
+    def submit_login(self, expect_success=True):
+        self.submit_button.click()
+        if expect_success:
+            try:
+                self.page.wait_for_url("**/dashboard", timeout=60000)
+                return DashboardPage(self.page)
+            except PlaywrightTimeoutError as e:
+                logger.error(f"Failed to redirect to dashboard: {e}")
+                allure.attach(self.page.content(), name="post_submit_login.html", attachment_type=allure.attachment_type.HTML)
+                raise
+        else:
+            logger.info("Logging page content after failed login attempt")
+            allure.attach(self.page.content(), name="failed_login_attempt.html", attachment_type=allure.attachment_type.HTML)
+        return self
+
+    @allure.step("Авторизация с email {email} и паролем")
+    def login(self, email: str, password: str, expect_success=True):
+        self.fill_email(email)
+        self.fill_password(password)
+        return self.submit_login(expect_success=expect_success)
+
+    @allure.step("Переход на указанную страницу")
+    def navigate_to(self, url: str):
+        logger.info(f"Navigating to {url}")
+        try:
+            self.page.goto(url, timeout=60000, wait_until="domcontentloaded")
+        except Exception as e:
+            logger.error(f"Navigation failed: {e}")
+            self.take_screenshot(f"navigation_error_{url.split('/')[-1]}.png")
+            allure.attach.file(f"navigation_error_{url.split('/')[-1]}.png", name="Navigation error screenshot", attachment_type=allure.attachment_type.PNG)
+            raise
+        return self
