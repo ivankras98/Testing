@@ -12,6 +12,8 @@ class DashboardPage(BasePage):
         self.url = f"{BASE_URL}/dashboard"
         self.plus_button = page.locator("button:has(svg.lucide.lucide-plus)")
         self.project_list = page.locator(".relative.flex.items-center.w-full")
+        self.profile_selector = page.locator("div.relative:has(svg.lucide-chevron-down), button[role='button']:has-text('Profile')")
+        self.logout_option = page.locator("text=Logout")
 
     @allure.step("Открытие формы создания проекта")
     def click_plus_button(self):
@@ -116,17 +118,22 @@ class DashboardPage(BasePage):
 
     @allure.step("Выполнение выхода из системы")
     def logout(self):
-        logger.info("Performing logout")
         try:
-            logout_button = self.page.locator("button:has-text('Logout')")
-            logout_button.wait_for(state="visible", timeout=30000)
-            logout_button.click()
-            logger.info("Logout button clicked")
+            logger.info("Checking profile selector visibility")
+            self.profile_selector.wait_for(state="visible", timeout=10000)
+            logger.info("Clicking profile selector")
+            self.profile_selector.click()
+            logger.info("Checking logout option visibility")
+            self.logout_option.wait_for(state="visible", timeout=10000)
+            logger.info("Clicking logout option")
+            self.logout_option.click()
+            logger.info("Waiting for authentication page")
+            self.page.wait_for_url("**/authentication", timeout=30000)  # Увеличен таймаут
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to logout: {e}")
+            logger.error(f"Logout failed: {e}")
             allure.attach(self.page.content(), name="logout_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="logout_error.png", attachment_type=allure.attachment_type.PNG)
             raise
         from pages.authentication_page import AuthenticationPage
-
+        logger.info(f"Redirected to: {self.page.url}")
         return AuthenticationPage(self.page)
