@@ -1,14 +1,14 @@
+# pages/project_page.py
 from playwright.sync_api import Page
 from pages.base_page import BasePage
 import allure
-from settings import BASE_URL
 from utils.logger import logger
 from playwright.sync_api import TimeoutError as PlaywrightTimeoutError
 
 class ProjectPage(BasePage):
     def __init__(self, page: Page):
         super().__init__(page)
-        self.url = f"{BASE_URL}/dashboard"
+        self.url = f"{self.BASE_URL}/dashboard"
         self.project_name_input = page.locator("input[placeholder='Project Name']")
         self.description_input = page.locator("textarea[placeholder='Project Description']")
         self.start_date_input = page.locator("input[placeholder='Start Date']")
@@ -25,7 +25,7 @@ class ProjectPage(BasePage):
             self.project_name_input.fill(name)
             logger.info(f"Поле 'Project Name' заполнено: {name}")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to fill project name: {e}")
+            logger.error(f"Не удалось заполнить поле названия: {e}")
             allure.attach(self.page.content(), name="project_name_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="project_name_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -39,7 +39,7 @@ class ProjectPage(BasePage):
             self.description_input.fill(description)
             logger.info(f"Поле 'Project Description' заполнено: {description}")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to fill description: {e}")
+            logger.error(f"Не удалось заполнить поле описания: {e}")
             allure.attach(self.page.content(), name="description_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="description_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -53,7 +53,7 @@ class ProjectPage(BasePage):
             self.start_date_input.fill(date)
             logger.info(f"Поле 'Start Date' заполнено: {date}")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to fill start date: {e}")
+            logger.error(f"Не удалось заполнить поле даты начала: {e}")
             allure.attach(self.page.content(), name="start_date_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="start_date_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -67,7 +67,7 @@ class ProjectPage(BasePage):
             self.end_date_input.fill(date)
             logger.info(f"Поле 'End Date' заполнено: {date}")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to fill end date: {e}")
+            logger.error(f"Не удалось заполнить поле даты окончания: {e}")
             allure.attach(self.page.content(), name="end_date_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="end_date_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -81,7 +81,7 @@ class ProjectPage(BasePage):
             self.status_select.select_option(status)
             logger.info(f"Поле 'Status' заполнено: {status}")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to fill status: {e}")
+            logger.error(f"Не удалось заполнить поле статуса: {e}")
             allure.attach(self.page.content(), name="status_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="status_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -91,34 +91,33 @@ class ProjectPage(BasePage):
     def submit_create_project(self):
         try:
             with allure.step("Ожидание, пока кнопка 'Create' станет активной"):
-                self.page.wait_for_selector("button[type='submit']:not([disabled])", state="visible", timeout=30000)
+                self.wait_for_selector("button[type='submit']:not([disabled])", timeout=30000)
             self.create_button.click()
             logger.info("Кликнули на кнопку 'Create' для создания проекта")
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to submit form: {e}")
+            logger.error(f"Не удалось отправить форму: {e}")
             allure.attach(self.page.content(), name="submit_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="submit_error.png", attachment_type=allure.attachment_type.PNG)
             raise
         return self
 
     @allure.step("Закрытие формы создания проекта")
-    def close_create_form(self):
+    def cancel_create_form(self):
         try:
-            logger.info("Closing create project form")
             self.cancel_button.click()
-        except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to close form: {e}")
-            allure.attach(self.page.content(), name="close_form_error.html", attachment_type=allure.attachment_type.HTML)
-            allure.attach(self.page.screenshot(), name="close_form_error.png", attachment_type=allure.attachment_type.PNG)
+            logger.info("Форма создания проекта закрыта")
+            allure.attach(self.page.screenshot(), name="form_closed.png", attachment_type=allure.attachment_type.PNG)
+        except Exception as e:
+            logger.error(f"Ошибка при закрытии формы: {e}")
+            allure.attach(self.page.screenshot(), name="form_close_error.png", attachment_type=allure.attachment_type.PNG)
             raise
-        return self
 
     @allure.step("Проверка видимости формы создания")
     def is_create_form_visible(self):
         try:
             return self.project_name_input.is_visible()
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to check form visibility: {e}")
+            logger.error(f"Не удалось проверить видимость формы: {e}")
             allure.attach(self.page.content(), name="form_visibility_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="form_visibility_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -130,7 +129,7 @@ class ProjectPage(BasePage):
                 self.wait_for_selector(f"text='{project_name}'", timeout=30000)
             return self.page.locator(f"text='{project_name}'").is_visible()
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to check project visibility: {e}")
+            logger.error(f"Не удалось проверить видимость проекта: {e}")
             allure.attach(self.page.content(), name="project_visibility_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="project_visibility_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -140,7 +139,7 @@ class ProjectPage(BasePage):
         try:
             return self.create_button.is_enabled()
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to check create button: {e}")
+            logger.error(f"Не удалось проверить кнопку создания: {e}")
             allure.attach(self.page.content(), name="create_button_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="create_button_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -156,7 +155,7 @@ class ProjectPage(BasePage):
             }.get(field_name)
             return field.input_value() == ""
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to check field emptiness: {e}")
+            logger.error(f"Не удалось проверить пустоту поля: {e}")
             allure.attach(self.page.content(), name="field_empty_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="field_empty_error.png", attachment_type=allure.attachment_type.PNG)
             raise
@@ -166,7 +165,7 @@ class ProjectPage(BasePage):
         try:
             return self.status_select.input_value() == "Not Started"
         except PlaywrightTimeoutError as e:
-            logger.error(f"Failed to check default status: {e}")
+            logger.error(f"Не удалось проверить статус по умолчанию: {e}")
             allure.attach(self.page.content(), name="status_default_error.html", attachment_type=allure.attachment_type.HTML)
             allure.attach(self.page.screenshot(), name="status_default_error.png", attachment_type=allure.attachment_type.PNG)
             raise
