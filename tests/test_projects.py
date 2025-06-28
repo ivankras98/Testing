@@ -10,12 +10,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
 @pytest.fixture(scope="function")
 def project_page(authenticated_context):
     page = authenticated_context.new_page()
     project_page = ProjectPage(page)
     yield project_page
     page.close()
+
 
 @pytest.mark.smoke
 @pytest.mark.projects
@@ -38,7 +40,9 @@ def test_delete_first_project(project_page: ProjectPage):
             allure.attach(project_page.page.content(), name="delete_error.html", attachment_type=allure.attachment_type.HTML)
             raise
 
+
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Успешное создание проекта со всеми заполненными полями")
 def test_create_project_success(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
@@ -75,8 +79,8 @@ def test_create_project_success(project_page: ProjectPage):
             allure.attach(project_page.page.screenshot(), name="project_created_no_success_message.png", attachment_type=allure.attachment_type.PNG)
 
 
-
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Создание проекта с длинным названием (больше 100 символов)")
 def test_create_project_long_name(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
@@ -110,8 +114,8 @@ def test_create_project_long_name(project_page: ProjectPage):
             allure.attach(project_page.page.screenshot(), name="long_name_not_created.png", attachment_type=allure.attachment_type.PNG)
 
 
-
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Создание проекта с названием, содержащим специальные символы")
 def test_create_project_special_chars(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
@@ -144,7 +148,9 @@ def test_create_project_special_chars(project_page: ProjectPage):
             logger.info(f"Проект {project_name} создан (без сообщения об успехе)")
             allure.attach(project_page.page.screenshot(), name="project_special_chars_no_success_message.png", attachment_type=allure.attachment_type.PNG)
 
+
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Проверка, что кнопка 'Create' неактивна при пустом названии")
 def test_create_button_disabled_on_empty_name(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
@@ -168,10 +174,8 @@ def test_create_button_disabled_on_empty_name(project_page: ProjectPage):
         allure.attach(project_page.page.screenshot(), name="create_button_disabled.png", attachment_type=allure.attachment_type.PNG)
 
 
-
-
-
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Создание проекта с End Date раньше, чем Start Date")
 def test_create_project_invalid_date_range(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
@@ -204,7 +208,9 @@ def test_create_project_invalid_date_range(project_page: ProjectPage):
             logger.info(f"Проект {project_name} не создан")
             allure.attach(project_page.page.screenshot(), name="invalid_date_range_not_created.png", attachment_type=allure.attachment_type.PNG)
 
+
 @pytest.mark.projects
+@pytest.mark.regression
 @allure.title("Создание проекта с некорректной датой")
 def test_create_project_invalid_date(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):

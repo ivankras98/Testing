@@ -1,12 +1,18 @@
 # pages/base_page.py
 from playwright.sync_api import Page
 from utils.logger import logger
+from dotenv import load_dotenv
 import allure
+import os
+
+
+load_dotenv()
 
 class BasePage:
-    BASE_URL = "http://localhost:3000"
+    BASE_URL = os.getenv("BASE_URL", "http://localhost:3000")
+    API_URL = os.getenv("API_URL", "http://localhost:8000/api")
 
-    def __init__(self, page: Page):
+    def __init__(self, page):
         self.page = page
 
     @allure.step("Переход на URL: {url}")
