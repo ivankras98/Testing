@@ -4,3 +4,4 @@ pytest-playwright
 python-dotenv
 allure-pytest
 flake8
+requests
