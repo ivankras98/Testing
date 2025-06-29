@@ -72,12 +72,12 @@ def test_logout_success(logged_in_page: DashboardPage):
 @pytest.mark.parametrize(
     "email, password, test_name",
     [
-        (os.getenv("EMAIL", "ikra-nn@yandex.ru"), "wrong_password", "неверный пароль"),
-        ("invalid-email@mail.ru", os.getenv("PASSWORD", "q1w2e3r4t5Y"), "неверный email"),
-        ("", os.getenv("PASSWORD", "q1w2e3r4t5Y"), "пустой email"),
-        (os.getenv("EMAIL", "ikra-nn@yandex.ru"), "", "пустой пароль"),
-        ("a" * 256 + "@example.com", os.getenv("PASSWORD", "q1w2e3r4t5Y"), "длинный email"),
-        (os.getenv("EMAIL", "ikra-nn@yandex.ru"), "a" * 101, "длинный пароль"),
+        (os.getenv("EMAIL"), "wrong_password", "неверный пароль"),
+        ("invalid-email@mail.ru", os.getenv("PASSWORD"), "неверный email"),
+        ("", os.getenv("PASSWORD"), "пустой email"),
+        (os.getenv("EMAIL"), "", "пустой пароль"),
+        ("a" * 256 + "@example.com", os.getenv("PASSWORD"), "длинный email"),
+        (os.getenv("EMAIL"), "a" * 101, "длинный пароль"),
     ],
     ids=["invalid_password", "invalid_email", "empty_email", "empty_password", "long_email", "long_password"]
 )
@@ -159,7 +159,7 @@ def test_login_block_after_attempts(page: Page):
                 allure.attach(page.content(), name=f"ошибка_попытки_{i+1}.html", attachment_type=allure.attachment_type.HTML)
                 raise
     with allure.step("Ввести корректные данные для входа"):
-        dashboard_page = auth_page.login(os.getenv("EMAIL", "ikra-nn@yandex.ru"), os.getenv("PASSWORD", "q1w2e3r4t5Y"))
+        dashboard_page = auth_page.login(os.getenv("EMAIL"), os.getenv("PASSWORD"))
     with allure.step("Проверить успешный вход"):
         try:
             assert dashboard_page.is_loaded(), f"Дашборд не загружен после корректного входа, текущий URL: {dashboard_page.page.url}"

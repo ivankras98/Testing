@@ -18,8 +18,8 @@ load_dotenv()
 def authenticated_context(browser: Browser):
     logger.info("Настройка контекста с авторизацией через API")
     api_base_url = BasePage.API_URL
-    email = os.getenv("EMAIL", "ikra-nn@yandex.ru")
-    password = os.getenv("PASSWORD", "q1w2e3r4t5Y")
+    email = os.getenv("EMAIL")
+    password = os.getenv("PASSWORD")
     logger.info(f"API_URL: {api_base_url}, EMAIL: {email}")
 
     try:

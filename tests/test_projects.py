@@ -25,10 +25,6 @@ def project_page(authenticated_context):
 def test_delete_first_project(project_page: ProjectPage):
     with allure.step("Переход на дашборд"):
         project_page.navigate_to(f"{project_page.BASE_URL}/dashboard")
-    with allure.step("Закрытие формы создания проекта, если она открыта"):
-        if project_page.is_create_form_visible():
-            project_page.close_create_form()
-            logger.info("Форма создания проекта была открыта и закрыта")
     with allure.step("Удаление первого проекта"):
         try:
             dashboard_page = DashboardPage(project_page.page)

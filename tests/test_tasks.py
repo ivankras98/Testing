@@ -7,6 +7,9 @@ from pages.project_view_page import ProjectViewPage
 from pages.dashboard_page import DashboardPage
 from utils.logger import logger
 from datetime import datetime
+from dotenv import load_dotenv
+
+load_dotenv()
 
 @pytest.fixture(scope="function")
 def project_page(authenticated_context):

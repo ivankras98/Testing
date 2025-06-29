@@ -9,8 +9,8 @@ import os
 load_dotenv()
 
 class BasePage:
-    BASE_URL = os.getenv("BASE_URL", "http://localhost:3000")
-    API_URL = os.getenv("API_URL", "http://localhost:8000/api")
+    BASE_URL = os.getenv("BASE_URL")
+    API_URL = os.getenv("API_URL")
 
     def __init__(self, page):
         self.page = page
